@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>My Voice, My Future — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+  :root{--maroon:#AD102E;--maroon-deep:#8E0D26;--gold:#FFC72C;--ink:#151A2D;--muted:#5D647D;--cream:#F7F8FB;--line:#E1E5EF;--ok:#13652F;--err:#B3261E;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--cream);color:var(--ink);}
+  header{background:var(--maroon-deep);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:12px;}
+  header h1{font-size:16px;margin:0;font-weight:800;flex:1;}
+  header button,.btn{background:var(--maroon);color:#fff;border:none;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;}
+  header button{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);}
+  .btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line);}
+  .btn.sm{padding:5px 10px;font-size:12px;}
+  .btn[disabled]{opacity:.5;pointer-events:none;}
+  .wrap{max-width:1180px;margin:0 auto;padding:22px;}
+
+  #loginScreen{max-width:360px;margin:80px auto;background:#fff;border-radius:14px;padding:30px;box-shadow:0 10px 30px rgba(0,0,0,.08);}
+  #loginScreen h2{margin:0 0 6px;font-size:19px;}
+  #loginScreen p{margin:0 0 18px;font-size:13px;color:var(--muted);}
+  #loginScreen label{display:block;font-size:12px;font-weight:700;margin-bottom:6px;}
+  #loginScreen input{width:100%;padding:10px 12px;border-radius:8px;border:1.5px solid var(--line);font-size:14px;margin-bottom:14px;}
+  #loginScreen .btn{width:100%;padding:12px;}
+  .msgbox{font-size:12.5px;margin-bottom:10px;display:none;color:var(--err);}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+  .stat{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.04);}
+  .stat .num{font-size:30px;font-weight:800;color:var(--maroon);}
+  .stat .lbl{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
+  .panel{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 10px rgba(0,0,0,.04);}
+  .panel h3{margin:0 0 12px;font-size:14px;font-weight:800;}
+  .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:7px;font-size:12.5px;}
+  .bar-row .nm{width:140px;flex-shrink:0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .bar-row .tr{flex:1;background:#F0EDE4;border-radius:6px;height:14px;overflow:hidden;}
+  .bar-row .fl{background:var(--maroon);height:100%;border-radius:6px;}
+  .bar-row .ct{width:56px;text-align:right;color:var(--muted);font-weight:700;}
+  .scroll{max-height:330px;overflow:auto;padding-right:4px;}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;align-items:center;}
+  .toolbar input,.toolbar select{padding:9px 11px;border-radius:8px;border:1.5px solid var(--line);font-size:13px;background:#fff;}
+  .toolbar input{flex:1;min-width:200px;}
+  .tbl-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;padding:9px 8px;color:var(--muted);font-weight:700;border-bottom:1.5px solid var(--line);font-size:11px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+  td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top;}
+  td.msg{max-width:320px;}
+  .pill{display:inline-block;font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:#F0EDE4;color:var(--muted);white-space:nowrap;}
+  .pill.ok{background:#EAF6EE;color:var(--ok);}
+  .pill.no{background:#FDECEA;color:var(--err);}
+  .empty{color:var(--muted);font-size:13px;padding:18px;text-align:center;}
+  .note{font-size:12px;color:var(--muted);margin-top:10px;}
+  .matrix{border-collapse:collapse;font-size:12.5px;width:100%;}
+  .matrix th,.matrix td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;}
+  .matrix th:first-child,.matrix td:first-child{text-align:left;position:sticky;left:0;background:#fff;}
+  .matrix thead th{font-size:10.5px;}
+  .matrix td.top{background:var(--gold);color:var(--ink);font-weight:800;border-radius:4px;}
+  .matrix td.zero{color:#C9C4BA;}
+  .matrix td.lead{font-weight:700;color:var(--maroon);text-align:left;}
+  .panel .head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:6px;}
+  .panel .head h3{margin:0;}
+  @media (max-width:800px){.stats{grid-template-columns:1fr 1fr;}.grid2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <h2>My Voice, My Future — Admin</h2>
+  <p>Sign in with an admin account. Contact details are visible only to accounts on the admin list.</p>
+  <label>Email</label><input type="email" id="loginEmail" autocomplete="username">
+  <label>Password</label><input type="password" id="loginPassword" autocomplete="current-password">
+  <div class="msgbox" id="loginErr"></div>
+  <button class="btn" id="loginBtn">Sign In</button>
+</div>
+
+<div id="dashboard" style="display:none">
+  <header>
+    <h1>My Voice, My Future — Dashboard</h1>
+    <button id="refreshBtn">Refresh</button>
+    <button id="logoutBtn">Sign Out</button>
+  </header>
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><div class="num" id="sTotal">–</div><div class="lbl">Total voices</div></div>
+      <div class="stat"><div class="num" id="sToday">–</div><div class="lbl">Last 24 hours</div></div>
+      <div class="stat"><div class="num" id="sLgas">–</div><div class="lbl">LGAs reached (of 44)</div></div>
+      <div class="stat"><div class="num" id="sPending">–</div><div class="lbl">Awaiting gallery review</div></div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel"><h3>By LGA</h3><div class="scroll" id="byLga"></div></div>
+      <div class="panel"><h3>By priority</h3><div id="byPriority"></div></div>
+    </div>
+
+    <div class="panel">
+      <div class="head"><h3>What each LGA cares about</h3><button class="btn ghost sm" id="matrixCsv">Download report (CSV)</button></div>
+      <p class="note" style="margin:0 0 12px">Number of voices for each priority. The highlighted cell is the LGA's top priority. Use it to target messages and feed the weekly media reports.</p>
+      <div class="tbl-wrap" style="max-height:460px;overflow:auto"><table class="matrix" id="matrix"></table></div>
+      <div class="empty" id="matrixEmpty" style="display:none">No voices yet.</div>
+    </div>
+
+    <div class="panel">
+      <h3>Submissions</h3>
+      <div class="toolbar">
+        <input type="text" id="q" placeholder="Search name, phone or message…">
+        <select id="fLga"><option value="">All LGAs</option></select>
+        <select id="fPriority"><option value="">All priorities</option></select>
+        <select id="fGallery">
+          <option value="">All</option>
+          <option value="pending">Gallery: awaiting review</option>
+          <option value="approved">Gallery: approved</option>
+        </select>
+        <button class="btn" id="csvBtn">Export contacts (CSV)</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>LGA / Ward</th><th>Priority</th><th>Message</th><th>Gallery</th><th>Date</th><th></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="emptyRows" style="display:none">No submissions match.</div>
+      <div style="text-align:center;margin-top:12px"><button class="btn ghost" id="moreBtn" style="display:none">Load more</button></div>
+      <p class="note">The CSV includes only people who gave contact consent and have not opted out. Treat it as confidential: don't forward it, and delete local copies when done.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const CONFIG = {
+  supabaseUrl: "https://omqmfqbgnhzljxccqvbk.supabase.co",
+  supabaseAnonKey: "sb_publishable_EYZJo9NFLq9bb6Pv-oaoWw_Hhp4WrCc"
+};
+const PRIORITY_LABELS = { education:"Education", jobs:"Jobs", health:"Healthcare", agriculture:"Agriculture",
+  infrastructure:"Roads & Power", security:"Security", water:"Clean Water", women_youth:"Women & Youth" };
+const LGAS = ["Ajingi","Albasu","Bagwai","Bebeji","Bichi","Bunkure","Dala","Dambatta","Dawakin Kudu","Dawakin Tofa","Doguwa","Fagge","Gabasawa","Garko","Garun Mallam","Gaya","Gezawa","Gwale","Gwarzo","Kabo","Kano Municipal","Karaye","Kibiya","Kiru","Kumbotso","Kunchi","Kura","Madobi","Makoda","Minjibir","Nasarawa","Rano","Rimin Gado","Rogo","Shanono","Sumaila","Takai","Tarauni","Tofa","Tsanyawa","Tudun Wada","Ungogo","Warawa","Wudil"];
+const PAGE = 100;
+
+const supa = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+const fmt = n => Number(n || 0).toLocaleString("en-NG");
+let offset = 0;
+
+LGAS.forEach(l => $("fLga").appendChild(new Option(l, l)));
+Object.entries(PRIORITY_LABELS).forEach(([k, v]) => $("fPriority").appendChild(new Option(v, k)));
+
+/* ---------- auth ---------- */
+async function enter(){
+  const { data: ok, error } = await supa.rpc("is_admin");
+  if (error || !ok){
+    await supa.auth.signOut();
+    showLoginError("This account is not on the admin list. Ask the project owner to add you.");
+    return;
+  }
+  $("loginScreen").style.display = "none"; $("dashboard").style.display = "block";
+  refresh();
+}
+function showLoginError(m){ $("loginErr").textContent = m; $("loginErr").style.display = "block"; }
+$("loginBtn").onclick = async () => {
+  $("loginErr").style.display = "none";
+  const { error } = await supa.auth.signInWithPassword({ email: $("loginEmail").value.trim(), password: $("loginPassword").value });
+  if (error) return showLoginError(error.message);
+  enter();
+};
+$("loginPassword").addEventListener("keydown", e => { if (e.key === "Enter") $("loginBtn").click(); });
+$("logoutBtn").onclick = async () => { await supa.auth.signOut(); location.reload(); };
+(async () => { const { data } = await supa.auth.getSession(); if (data.session) enter(); })();
+
+/* ---------- stats ---------- */
+async function loadStats(){
+  const { data: s } = await supa.rpc("admin_stats");
+  if (!s) return;
+  $("sTotal").textContent = fmt(s.total);
+  $("sLgas").textContent = (s.by_lga || []).length;
+  bars($("byLga"), (s.by_lga || []).map(r => [r.lga, r.n]));
+  bars($("byPriority"), (s.by_priority || []).map(r => [PRIORITY_LABELS[r.priority] || r.priority, r.n]));
+  const since = new Date(Date.now() - 864e5).toISOString();
+  const { count: today } = await supa.from("voices").select("id", { count:"exact", head:true }).gte("created_at", since);
+  $("sToday").textContent = fmt(today);
+  const { count: pending } = await supa.from("voices").select("id", { count:"exact", head:true }).eq("show_in_gallery", true).eq("approved", false);
+  $("sPending").textContent = fmt(pending);
+}
+function bars(el, rows){
+  if (!rows.length){ el.innerHTML = `<div class="empty">No data yet.</div>`; return; }
+  const max = Math.max(...rows.map(r => r[1]));
+  el.innerHTML = rows.map(([n, c]) => `<div class="bar-row"><span class="nm" title="${esc(n)}">${esc(n)}</span>
+    <span class="tr"><span class="fl" style="display:block;width:${c / max * 100}%"></span></span><span class="ct">${fmt(c)}</span></div>`).join("");
+}
+
+/* ---------- table ---------- */
+function baseQuery(select){
+  let q = supa.from("voices").select(select).order("created_at", { ascending:false });
+  const lga = $("fLga").value, pr = $("fPriority").value, g = $("fGallery").value;
+  if (lga) q = q.eq("lga", lga);
+  if (pr) q = q.eq("priority", pr);
+  if (g === "pending") q = q.eq("show_in_gallery", true).eq("approved", false);
+  if (g === "approved") q = q.eq("approved", true);
+  const term = $("q").value.trim().replace(/[,()%]/g, " ");
+  if (term){
+    if (/^[+\d\s]{4,}$/.test(term)){
+      const digits = term.replace(/\D/g, "").replace(/^0/, "");
+      q = q.ilike("voice_contacts.phone", `%${digits}%`);
+    } else q = q.or(`full_name.ilike.%${term}%,message.ilike.%${term}%,ward.ilike.%${term}%`);
+  }
+  return q;
+}
+const SELECT = "id,full_name,lga,ward,priority,message,lang,show_in_gallery,approved,created_at,voice_contacts!inner(phone,email,opted_out)";
+async function loadRows(reset = true){
+  if (reset){ offset = 0; $("rows").innerHTML = ""; }
+  const { data, error } = await baseQuery(SELECT).range(offset, offset + PAGE - 1);
+  if (error){ $("rows").innerHTML = `<tr><td colspan="9" class="empty">${esc(error.message)}</td></tr>`; return; }
+  $("rows").insertAdjacentHTML("beforeend", data.map(rowHtml).join(""));
+  offset += data.length;
+  $("emptyRows").style.display = offset ? "none" : "block";
+  $("moreBtn").style.display = data.length === PAGE ? "inline-block" : "none";
+}
+function rowHtml(v){
+  const c = v.voice_contacts || {};
+  let g = `<span class="pill">Not opted in</span>`, act = "";
+  if (v.show_in_gallery){
+    g = v.approved ? `<span class="pill ok">Approved</span>` : `<span class="pill">Awaiting</span>`;
+    act = v.approved ? `<button class="btn ghost sm" data-act="unapprove" data-id="${v.id}">Hide</button>`
+                     : `<button class="btn sm" data-act="approve" data-id="${v.id}">Approve</button>`;
+  }
+  const phone = c.opted_out ? `${esc(c.phone)} <span class="pill no">Opted out</span>` : esc(c.phone);
+  const optBtn = (c.opted_out ? "" : ` <button class="btn ghost sm" data-act="optout" data-id="${v.id}" title="Person asked not to be contacted">Opt out</button>`)
+    + ` <button class="btn ghost sm" data-act="delete" data-id="${v.id}" title="Person asked for their data to be deleted" style="color:var(--err)">Delete</button>`;
+  return `<tr id="r-${v.id}"><td><b>${esc(v.full_name)}</b></td><td style="white-space:nowrap">${phone}</td><td>${esc(c.email || "")}</td>
+    <td>${esc(v.lga)}<br><span style="color:var(--muted)">${esc(v.ward)}</span></td>
+    <td><span class="pill">${esc(PRIORITY_LABELS[v.priority] || v.priority)}</span></td>
+    <td class="msg">${esc(v.message)} <span style="color:var(--muted)">(${v.lang.toUpperCase()})</span></td>
+    <td>${g}</td><td style="white-space:nowrap">${new Date(v.created_at).toLocaleString("en-NG", { dateStyle:"medium", timeStyle:"short" })}</td>
+    <td style="white-space:nowrap">${act}${optBtn}</td></tr>`;
+}
+$("rows").addEventListener("click", async e => {
+  const b = e.target.closest("button[data-act]"); if (!b) return;
+  b.disabled = true; const id = b.dataset.id; let error;
+  if (b.dataset.act === "approve") ({ error } = await supa.from("voices").update({ approved:true }).eq("id", id));
+  if (b.dataset.act === "unapprove") ({ error } = await supa.from("voices").update({ approved:false }).eq("id", id));
+  if (b.dataset.act === "optout"){
+    if (!confirm("Mark this person as opted out? They will be left out of all future contact exports.")){ b.disabled = false; return; }
+    ({ error } = await supa.from("voice_contacts").update({ opted_out:true, opted_out_at:new Date().toISOString() }).eq("voice_id", id));
+  }
+  if (b.dataset.act === "delete"){
+    if (!confirm("Permanently delete this person's entry, phone number and email? This can't be undone.")){ b.disabled = false; return; }
+    ({ error } = await supa.from("voices").delete().eq("id", id));
+    if (error){ alert(error.message); b.disabled = false; return; }
+    $("r-" + id).remove(); loadStats(); loadMatrix(); return;
+  }
+  if (error){ alert(error.message); b.disabled = false; return; }
+  const { data } = await supa.from("voices").select(SELECT).eq("id", id).single();
+  if (data) $("r-" + id).outerHTML = rowHtml(data);
+  loadStats();
+});
+
+/* ---------- CSV export (consented, not opted out) ---------- */
+$("csvBtn").onclick = async () => {
+  const btn = $("csvBtn"); btn.disabled = true; btn.textContent = "Preparing…";
+  const all = []; let from = 0;
+  try {
+    while (true){
+      const { data, error } = await baseQuery(SELECT).eq("voice_contacts.opted_out", false).range(from, from + 999);
+      if (error) throw error;
+      all.push(...data); if (data.length < 1000) break; from += 1000;
+    }
+    const head = ["full_name","phone","email","lga","ward","priority","message","language","submitted_at"];
+    const cell = x => { const s = String(x ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+    const lines = [head.join(",")].concat(all.map(v => [v.full_name, v.voice_contacts.phone, v.voice_contacts.email, v.lga, v.ward,
+      PRIORITY_LABELS[v.priority] || v.priority, v.message, v.lang, v.created_at].map(cell).join(",")));
+    const blob = new Blob(["﻿" + lines.join("\n")], { type:"text/csv;charset=utf-8" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `my-voice-contacts-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  } catch(err){ alert("Export failed: " + err.message); }
+  btn.disabled = false; btn.textContent = "Export contacts (CSV)";
+};
+
+/* ---------- wiring ---------- */
+let t; $("q").addEventListener("input", () => { clearTimeout(t); t = setTimeout(() => loadRows(), 350); });
+["fLga","fPriority","fGallery"].forEach(id => $(id).addEventListener("change", () => loadRows()));
+$("moreBtn").onclick = () => loadRows(false);
+$("refreshBtn").onclick = refresh;
+/* ---------- LGA × priority report ---------- */
+let matrixRows = [];
+async function loadMatrix(){
+  const { data, error } = await supa.rpc("admin_lga_priority");
+  const t = $("matrix");
+  if (error){ t.innerHTML = `<tr><td>${esc(error.message)}</td></tr>`; return; }
+  const keys = Object.keys(PRIORITY_LABELS), by = {};
+  (data || []).forEach(r => { (by[r.lga] = by[r.lga] || { total:0 })[r.priority] = Number(r.n); by[r.lga].total += Number(r.n); });
+  matrixRows = Object.entries(by).sort((a, b) => b[1].total - a[1].total).map(([lga, c]) => {
+    const top = keys.reduce((best, k) => (c[k] || 0) > (c[best] || 0) ? k : best, keys[0]);
+    return { lga, c, top };
+  });
+  $("matrixEmpty").style.display = matrixRows.length ? "none" : "block";
+  if (!matrixRows.length){ t.innerHTML = ""; return; }
+  t.innerHTML = `<thead><tr><th>LGA</th><th>Total</th><th>Top priority</th>${keys.map(k => `<th>${esc(PRIORITY_LABELS[k])}</th>`).join("")}</tr></thead><tbody>` +
+    matrixRows.map(({ lga, c, top }) => `<tr><td><b>${esc(lga)}</b></td><td>${fmt(c.total)}</td><td class="lead">${esc(PRIORITY_LABELS[top])}</td>` +
+      keys.map(k => { const n = c[k] || 0; const cls = !n ? "zero" : k === top ? "top" : ""; return `<td class="${cls}">${n ? fmt(n) + `<span style="color:var(--muted);font-weight:400"> · ${Math.round(n / c.total * 100)}%</span>` : "0"}</td>`; }).join("") + `</tr>`).join("") + `</tbody>`;
+}
+$("matrixCsv").onclick = () => {
+  const keys = Object.keys(PRIORITY_LABELS);
+  const cell = x => { const s = String(x ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const lines = [["lga","total","top_priority", ...keys.map(k => PRIORITY_LABELS[k])].map(cell).join(",")]
+    .concat(matrixRows.map(({ lga, c, top }) => [lga, c.total, PRIORITY_LABELS[top], ...keys.map(k => c[k] || 0)].map(cell).join(",")));
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\ufeff" + lines.join("\n")], { type:"text/csv;charset=utf-8" }));
+  a.download = `lga-priority-report-${new Date().toISOString().slice(0,10)}.csv`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+};
+
+function refresh(){ loadStats(); loadMatrix(); loadRows(); }
+</script>
+</body>
+</html>
